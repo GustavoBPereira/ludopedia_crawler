@@ -10,13 +10,16 @@ leilao = {}
 
 def get_soup(_id):
     req = requests.get(f'https://ludopedia.com.br/leiloes?id_leilao={_id}')
-    return BeautifulSoup(req.text, 'html.parser')
+    return BeautifulSoup(req.text, 'html.parser') if req.status_code else None
 
 
 def get_leilao_data(_id):
     print(_id)
     data = {}
     soup = get_soup(_id)
+    if not soup or soup.find('a', attrs={'title': 'Leilões que terminam em menos de 24 horas'}):
+        return []
+
     data['leilao_id'] = _id
     data['title'] = soup.find('h3', 'no-margin').text.split(' (Término')[0]
     return [
@@ -34,18 +37,23 @@ def get_product_data(soup):
         year = datetime.date.today().year
 
     tab = soup.find('table', {'class': 'table-ofertas'})
+    try:
+        trs = tab.find('tbody').find_all('tr')
+    except AttributeError:
+        return []
+
     for tr in tab.find('tbody').find_all('tr'):
         if not 'Finalizado' in tr.find('td', 'td-leilao').find('span').text:
             continue
 
         finish_at = tr.find('td', 'td-leilao').find('span').text.split('Finalizado (')[-1][0:-1]
         price_text = getattr(tr.find('td', 'td-leilao').find('span', 'lance-atual'), 'text', 'R$ 0,0')
-        price = float(price_text.split('R$ ')[-1].replace(',', '.'))
+        price = float(price_text.split('R$ ')[-1].replace('.', '').replace(',', '.'))
         products.append(
             {
                 'name': tr.find('td', 'td-info').find('a', 'item-title').text,
                 'state': tr.find('td', 'td-info').find('span').text.strip(),
-                'finish_at': finish_at[0:5] + year + finish_at[5::],
+                'finish_at': finish_at[0:5] + f'/{year}' + finish_at[5::],
                 'price': price
             }
         )
@@ -53,9 +61,11 @@ def get_product_data(soup):
 
 
 def crawl():
-    for c in range(528, 530):
+    import time
+    for c in range(1, 53193):
         for leilao_data in get_leilao_data(c):
             yield leilao_data
+        time.sleep(1)
 
 
 if __name__ == '__main__':

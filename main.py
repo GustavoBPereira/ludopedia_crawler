@@ -43,7 +43,10 @@ def get_product_data(soup):
         return []
 
     for tr in tab.find('tbody').find_all('tr'):
-        if not 'Finalizado' in tr.find('td', 'td-leilao').find('span').text:
+        try:
+            if not 'Finalizado' in tr.find('td', 'td-leilao').find('span').text:
+                continue
+        except:
             continue
 
         finish_at = tr.find('td', 'td-leilao').find('span').text.split('Finalizado (')[-1][0:-1]
@@ -61,17 +64,16 @@ def get_product_data(soup):
 
 
 def crawl():
-    import time
+    import time, random
     for c in range(1, 53193):
         for leilao_data in get_leilao_data(c):
             yield leilao_data
-        time.sleep(1)
+        time.sleep(random.randint(5, 16))
 
 
 if __name__ == '__main__':
-    with open('data.csv', "w", newline='') as csv_file:
+    with open('data.csv', "a", newline='') as csv_file:
         fields = ['leilao_id', 'title', 'finish_at', 'name', 'price', 'state']
         writer = csv.DictWriter(csv_file, fieldnames=fields)
-        writer.writeheader()
         for line in crawl():
             writer.writerow(line)

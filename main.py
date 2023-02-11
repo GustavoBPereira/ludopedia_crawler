@@ -42,7 +42,7 @@ def get_product_data(soup):
     except AttributeError:
         return []
 
-    for tr in tab.find('tbody').find_all('tr'):
+    for tr in trs:
         try:
             if not 'Finalizado' in tr.find('td', 'td-leilao').find('span').text:
                 continue

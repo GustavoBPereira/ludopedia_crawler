@@ -1,8 +1,9 @@
 import datetime
 import re
-import csv
 import requests
 from bs4 import BeautifulSoup
+
+from storage import add_product
 
 data = []
 leilao = {}
@@ -56,7 +57,7 @@ def get_product_data(soup):
             {
                 'name': tr.find('td', 'td-info').find('a', 'item-title').text,
                 'state': tr.find('td', 'td-info').find('span').text.strip(),
-                'finish_at': finish_at[0:5] + f'/{year}' + finish_at[5::],
+                'finish_at': datetime.datetime.strptime(finish_at[0:5] + f'/{year}' + finish_at[5::], '%d/%m/%Y %H:%M'),
                 'price': price
             }
         )
@@ -65,15 +66,11 @@ def get_product_data(soup):
 
 def crawl():
     import time, random
-    for c in range(1, 53193):
-        for leilao_data in get_leilao_data(c):
-            yield leilao_data
-        time.sleep(random.randint(5, 16))
+    for leilao_data in get_leilao_data(2832):
+        yield leilao_data
+    time.sleep(random.randint(5, 16))
 
 
 if __name__ == '__main__':
-    with open('data.csv', "a", newline='') as csv_file:
-        fields = ['leilao_id', 'title', 'finish_at', 'name', 'price', 'state']
-        writer = csv.DictWriter(csv_file, fieldnames=fields)
-        for line in crawl():
-            writer.writerow(line)
+    for line in crawl():
+        add_product(**line)

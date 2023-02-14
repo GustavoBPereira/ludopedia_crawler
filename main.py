@@ -3,7 +3,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-from storage import add_product
+from storage import add_product, get_last_id
 
 data = []
 leilao = {}
@@ -66,7 +66,7 @@ def get_product_data(soup):
 
 def crawl():
     import time, random
-    for leilao_data in get_leilao_data(2832):
+    for leilao_data in get_leilao_data(get_last_id(), 60000):
         yield leilao_data
     time.sleep(random.randint(5, 16))
 

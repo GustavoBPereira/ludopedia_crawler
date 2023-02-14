@@ -29,4 +29,4 @@ def add_product(leilao_id, title, finish_at, name, price, state):
 
 
 def get_last_id():
-    return session.query(func.max(Product.leilao_id+0)).first()[0]
+    return session.query(func.max(Product.leilao_id+0)).first()[0] or 0

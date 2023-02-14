@@ -1,9 +1,12 @@
 import datetime
+import random
 import re
+import time
+
 import requests
 from bs4 import BeautifulSoup
 
-from storage import add_product, get_last_id
+from app.infra.storage import add_product, get_last_id
 
 data = []
 leilao = {}
@@ -64,13 +67,13 @@ def get_product_data(soup):
     return products
 
 
-def crawl():
-    import time, random
-    for leilao_data in get_leilao_data(get_last_id(), 60000):
+def crawl_data(_id):
+    for leilao_data in get_leilao_data(_id):
         yield leilao_data
     time.sleep(random.randint(5, 16))
 
 
-if __name__ == '__main__':
-    for line in crawl():
-        add_product(**line)
+def crawl():
+    for _id in range(get_last_id() + 1, 60000):
+        for line in crawl_data(_id):
+            add_product(**line)

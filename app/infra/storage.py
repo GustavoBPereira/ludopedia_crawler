@@ -16,7 +16,7 @@ class Product(Base):
     state = Column(String)
 
 
-engine = create_engine('sqlite:///leiloes.db')
+engine = create_engine('sqlite:///app/infra/db/leiloes.db')
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()

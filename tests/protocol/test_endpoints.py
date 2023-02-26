@@ -1,9 +1,10 @@
 import unittest
+from datetime import datetime
 
 from app import main
 
 
-class TutorialFunctionalTests(unittest.TestCase):
+class ApiFunctionalTests(unittest.TestCase):
     def setUp(self):
         app = main({})
         from webtest import TestApp
@@ -25,6 +26,15 @@ class TutorialFunctionalTests(unittest.TestCase):
                 another_game_find = True
         assert another_game_find
 
+    def test_search_ordenation(self):
+        res = self.testapp.get('/search?q=santorini', status=200)
+        previous_name = None
+        for product in res.json:
+            if previous_name:
+                assert product['name'] > previous_name
+            previous_name = product['name']
+
+
     def test_detail_payload(self):
         res = self.testapp.get('/detail?q=santorini', status=200)
 
@@ -37,3 +47,33 @@ class TutorialFunctionalTests(unittest.TestCase):
 
         for product in res.json:
             assert product['name'] == 'Santorini'
+
+    def test_detail_param_with_spaces(self):
+        res = self.testapp.get('/detail?q=Santorini:%20Golden%20Fleece', status=200)
+
+        for product in res.json:
+            assert product['name'] == 'Santorini: Golden Fleece'
+
+    def test_detail_filter_only_sold(self):
+        res = self.testapp.get('/detail?q=santorini', status=200)
+        for product in res.json:
+            assert product['price'] > 0
+
+    def test_detail_filter_include_not_sold(self):
+        res = self.testapp.get('/detail?q=santorini&include_not_sold=true', status=200)
+
+        not_sold_finded = False
+        for product in res.json:
+            if product['price'] == 0.0:
+                not_sold_finded = True
+        assert not_sold_finded
+
+    def test_detail_ordenation(self):
+        res = self.testapp.get('/detail?q=santorini', status=200)
+
+        _finish_at = None
+        date_format = '%Y-%m-%dT%H:%M:%S'
+        for product in res.json:
+            if _finish_at:
+                assert datetime.strptime(product['finish_at'], date_format) <= datetime.strptime(_finish_at, date_format)
+            _finish_at = product['finish_at']

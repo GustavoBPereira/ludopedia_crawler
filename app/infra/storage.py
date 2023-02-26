@@ -45,7 +45,7 @@ def get_last_id():
 def filter_product_name_contains(name):
     session = DBSession()
     products = products_to_json(
-        session.query(Product).group_by(Product.name).filter(Product.name.ilike('%' + name + '%')).all())
+        session.query(Product).group_by(Product.name).filter(Product.name.ilike('%' + name + '%')).order_by(Product.name.asc()).all())
     for product in products:
         del product['id']
         del product['leilao_id']
@@ -60,6 +60,9 @@ def filter_product_name_contains(name):
     return products
 
 
-def filter_product_name_equals(name):
+def filter_product_name_equals(name, not_sold):
     session = DBSession()
-    return products_to_json(session.query(Product).filter(Product.name.ilike(name)).all())
+    query = session.query(Product).filter(Product.name.ilike(name))
+    if not not_sold:
+        query = query.filter(Product.price > 0)
+    return products_to_json(query.order_by(Product.finish_at.desc()).all())

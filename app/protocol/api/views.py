@@ -12,4 +12,5 @@ def search_view(request):
 @view_config(route_name='detail', renderer='json')
 def detail_view(request):
     q = request.params.get('q', None)
-    return filter_product_name_equals(q)
+    not_sold = request.params.get('include_not_sold', False)
+    return filter_product_name_equals(q, not_sold)

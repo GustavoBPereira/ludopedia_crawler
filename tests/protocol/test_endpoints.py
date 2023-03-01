@@ -71,9 +71,8 @@ class ApiFunctionalTests(unittest.TestCase):
     def test_detail_ordenation(self):
         res = self.testapp.get('/detail?q=santorini', status=200)
 
-        _finish_at = None
-        date_format = '%Y-%m-%dT%H:%M:%S'
+        previous_price = None
         for product in res.json:
-            if _finish_at:
-                assert datetime.strptime(product['finish_at'], date_format) <= datetime.strptime(_finish_at, date_format)
-            _finish_at = product['finish_at']
+            if previous_price:
+                assert previous_price <= product['price']
+            previous_price = product['price']

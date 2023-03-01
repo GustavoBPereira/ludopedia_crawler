@@ -65,4 +65,4 @@ def filter_product_name_equals(name, not_sold):
     query = session.query(Product).filter(Product.name.ilike(name))
     if not not_sold:
         query = query.filter(Product.price > 0)
-    return products_to_json(query.order_by(Product.finish_at.desc()).all())
+    return products_to_json(query.order_by(Product.price.asc()).all())

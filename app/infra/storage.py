@@ -44,20 +44,16 @@ def get_last_id():
 
 def filter_product_name_contains(name):
     session = DBSession()
-    products = products_to_json(
-        session.query(Product).group_by(Product.name).filter(Product.name.ilike('%' + name + '%')).order_by(Product.name.asc()).all())
-    for product in products:
-        del product['id']
-        del product['leilao_id']
-        del product['finish_at']
-        del product['title']
-        del product['price']
-        del product['state']
-        product['count_sold'] = session.query(Product).filter(Product.name.is_(product['name']),
-                                                              Product.price > 0).count()
-        product['count_not_sold'] = session.query(Product).filter(Product.name.is_(product['name']),
-                                                                  Product.price.is_(0.0)).count()
-    return products
+    products = session.query(
+        Product.leilao_id, Product.name
+    ).group_by(
+        Product.name
+    ).filter(
+        Product.name.ilike('%' + name + '%')
+    ).order_by(
+        Product.name.asc()
+    )
+    return [{'id': product[0], 'name': product[1]} for product in products.all()]
 
 
 def filter_product_name_equals(name, not_sold):

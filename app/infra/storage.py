@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float, Sequence, func
+from sqlalchemy import Column, Integer, String, DateTime, Float, Sequence, func, select
 from sqlalchemy.orm import declarative_base
 
 from app.infra import DBSession
@@ -44,8 +44,8 @@ def get_last_id():
 
 def filter_product_name_contains(name):
     session = DBSession()
-    products = session.query(
-        Product.leilao_id, Product.name
+    stmt = select(
+        Product.leilao_id, Product.name, func.count()
     ).group_by(
         Product.name
     ).filter(
@@ -53,12 +53,24 @@ def filter_product_name_contains(name):
     ).order_by(
         Product.name.asc()
     )
-    return [{'id': product[0], 'name': product[1]} for product in products.all()]
+    return [{'id': product[0], 'name': product[1], 'quantity': product[2]} for product in session.execute(stmt)]
 
 
 def filter_product_name_equals(name, not_sold):
     session = DBSession()
-    query = session.query(Product).filter(Product.name.ilike(name))
+    stmt = select(
+        Product._id,
+        Product.leilao_id,
+        Product.title,
+        Product.finish_at,
+        Product.name,
+        Product.price,
+        Product.state
+    ).filter(
+        Product.name.ilike(name)
+    ).order_by(
+            Product.price.asc()
+    )
     if not not_sold:
-        query = query.filter(Product.price > 0)
-    return products_to_json(query.order_by(Product.price.asc()).all())
+        stmt = stmt.filter(Product.price > 0)
+    return products_to_json(session.execute(stmt))

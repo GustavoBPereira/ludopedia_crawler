@@ -15,7 +15,7 @@ class ApiFunctionalTests(unittest.TestCase):
         res = self.testapp.get('/search?q=santorini', status=200)
 
         for product in res.json:
-            self.assertListEqual(list(product.keys()), ['name', 'count_sold', 'count_not_sold'])
+            self.assertListEqual(list(product.keys()), ['id', 'name', 'quantity'])
 
     def test_search_another_game_find(self):
         res = self.testapp.get('/search?q=santorini', status=200)

@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime
+import json
 
 from app import main
 
@@ -14,14 +14,14 @@ class ApiFunctionalTests(unittest.TestCase):
     def test_search_payload(self):
         res = self.testapp.get('/search?q=santorini', status=200)
 
-        for product in res.json:
+        for product in json.loads(res.body):
             self.assertListEqual(list(product.keys()), ['id', 'name', 'quantity'])
 
     def test_search_another_game_find(self):
         res = self.testapp.get('/search?q=santorini', status=200)
 
         another_game_find = False
-        for product in res.json:
+        for product in json.loads(res.body):
             if product['name'] == 'Santorini: Golden Fleece':
                 another_game_find = True
         assert another_game_find
@@ -29,7 +29,7 @@ class ApiFunctionalTests(unittest.TestCase):
     def test_search_ordenation(self):
         res = self.testapp.get('/search?q=santorini', status=200)
         previous_name = None
-        for product in res.json:
+        for product in json.loads(res.body):
             if previous_name:
                 assert product['name'] > previous_name
             previous_name = product['name']
@@ -38,32 +38,32 @@ class ApiFunctionalTests(unittest.TestCase):
     def test_detail_payload(self):
         res = self.testapp.get('/detail?q=santorini', status=200)
 
-        for product in res.json:
+        for product in json.loads(res.body):
             self.assertListEqual(list(product.keys()),
                                  ['id', 'leilao_id', 'title', 'finish_at', 'name', 'price', 'state'])
 
     def test_detail_filter_just_query(self):
         res = self.testapp.get('/detail?q=santorini', status=200)
 
-        for product in res.json:
+        for product in json.loads(res.body):
             assert product['name'] == 'Santorini'
 
     def test_detail_param_with_spaces(self):
         res = self.testapp.get('/detail?q=Santorini:%20Golden%20Fleece', status=200)
 
-        for product in res.json:
+        for product in json.loads(res.body):
             assert product['name'] == 'Santorini: Golden Fleece'
 
     def test_detail_filter_only_sold(self):
         res = self.testapp.get('/detail?q=santorini', status=200)
-        for product in res.json:
+        for product in json.loads(res.body):
             assert product['price'] > 0
 
     def test_detail_filter_include_not_sold(self):
         res = self.testapp.get('/detail?q=santorini&include_not_sold=true', status=200)
 
         not_sold_finded = False
-        for product in res.json:
+        for product in json.loads(res.body):
             if product['price'] == 0.0:
                 not_sold_finded = True
         assert not_sold_finded
@@ -72,7 +72,7 @@ class ApiFunctionalTests(unittest.TestCase):
         res = self.testapp.get('/detail?q=santorini', status=200)
 
         previous_price = None
-        for product in res.json:
+        for product in json.loads(res.body):
             if previous_price:
                 assert previous_price <= product['price']
             previous_price = product['price']
